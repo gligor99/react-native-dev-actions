@@ -4,6 +4,10 @@ Dev menu actions, env switcher and feature flags for React Native & Expo.
 
 Add your own items to the dev menu (clear storage, log out, reset the offline DB, …), switch between dev / staging / prod and flip feature flags without rebuilding.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/gligor99/react-native-dev-actions/main/docs/demo.gif" width="300" alt="Switching env to staging and toggling a feature flag from the Expo dev menu" />
+</p>
+
 - Works with the **React Native dev menu** (`DevSettings`) and the **Expo dev-client menu** (`expo-dev-menu`), detected automatically.
 - **Hot-reload safe**: re-registering replaces the handler instead of adding duplicate items.
 - **Release-safe**: in release builds registering does nothing, and env and flags are locked to their defaults without ever reading storage.
