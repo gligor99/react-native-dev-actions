@@ -1,6 +1,7 @@
 import { useSyncExternalStore, type ReactNode } from 'react';
 import { DevSettings } from 'react-native';
 import { LOG_PREFIX, notify } from './notify';
+import { readStored } from './readStored';
 import { devActions } from './registry';
 import type { StorageAdapter } from './types';
 
@@ -17,10 +18,6 @@ export type EnvOptions<E extends Record<string, object>> = {
   /** Add an "Env → <name>" dev menu item per env. Defaults to `true`. */
   menu?: boolean;
 };
-
-function isThenable<T>(value: unknown): value is PromiseLike<T> {
-  return typeof (value as PromiseLike<T> | undefined)?.then === 'function';
-}
 
 export function createEnv<const E extends Record<string, object>>(
   options: EnvOptions<E>
@@ -63,29 +60,10 @@ export function createEnv<const E extends Record<string, object>>(
 
     // Release builds never read storage: a debug build installed over the
     // same bundle id must not leak its env into release.
-    if (!__DEV__) {
-      ready = true;
-      initPromise = Promise.resolve();
-      return initPromise;
-    }
-
-    let stored: ReturnType<StorageAdapter['get']>;
-    try {
-      stored = options.storage.get(storageKey);
-    } catch (error) {
-      console.warn(`${LOG_PREFIX} Failed to read stored env`, error);
-      stored = null;
-    }
-
-    if (isThenable<string | null | undefined>(stored)) {
-      initPromise = Promise.resolve(stored)
-        .catch((error: unknown) => {
-          console.warn(`${LOG_PREFIX} Failed to read stored env`, error);
-          return null;
-        })
-        .then(finishInit);
+    if (__DEV__) {
+      initPromise = readStored(options.storage, storageKey, finishInit);
     } else {
-      finishInit(stored);
+      ready = true;
       initPromise = Promise.resolve();
     }
     return initPromise;
@@ -159,6 +137,8 @@ export function createEnv<const E extends Record<string, object>>(
     envs: options.envs,
     storageKey,
     init,
+    ready: () => ready,
+    subscribe,
     name,
     get,
     switchTo,

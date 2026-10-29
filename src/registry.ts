@@ -66,6 +66,11 @@ export const devActions = {
   list(): string[] {
     return Array.from(actions.keys());
   },
+
+  /** Whether re-registering an id with a new title updates the menu label. */
+  supportsDynamicTitles(): boolean {
+    return getAdapter()?.dynamicTitles ?? false;
+  },
 };
 
 /**

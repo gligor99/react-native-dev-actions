@@ -6,9 +6,10 @@ export type FakeMenu = MenuAdapter & {
   press(title: string): void;
 };
 
-export function createFakeMenu(): FakeMenu {
+export function createFakeMenu({ dynamicTitles = false } = {}): FakeMenu {
   const menu: FakeMenu = {
     name: 'fake',
+    dynamicTitles,
     items: [],
     sync(items) {
       menu.items = items;

@@ -1,7 +1,7 @@
 {
   "name": "react-native-dev-actions",
   "version": "0.1.0",
-  "description": "Dev menu actions + env switcher for React Native & Expo",
+  "description": "Dev menu actions, env switcher and feature flags for React Native & Expo",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
@@ -40,7 +40,8 @@
     "devsettings",
     "environment",
     "env-switcher",
-    "developer-tools"
+    "developer-tools",
+    "feature-flags"
   ],
   "repository": {
     "type": "git",

@@ -13,6 +13,7 @@ export function createDevSettingsAdapter(): MenuAdapter {
 
   return {
     name: 'dev-settings',
+    dynamicTitles: false,
     sync(items) {
       handlers = new Map(items.map((item) => [item.title, item.run]));
 

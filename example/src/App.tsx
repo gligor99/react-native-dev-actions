@@ -7,8 +7,8 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import { useDevAction } from 'react-native-dev-actions';
-import { env } from './devTools';
+import { DevActionsGate, useDevAction } from 'react-native-dev-actions';
+import { env, flags } from './devTools';
 
 const ENV_COLORS: Record<string, string> = {
   dev: '#16a34a',
@@ -36,10 +36,13 @@ const darkTheme: typeof lightTheme = {
 
 const TRY_ACTIONS = [
   'Env → staging',
+  'newCheckout',
+  'paywall: v2',
+  'Share debug info',
   'Log out',
-  'Reset offline DB',
-  'Show env info',
 ];
+
+const GATE = [env, flags];
 
 const MENU_SHORTCUT =
   Platform.OS === 'ios' ? '⌘D in the simulator' : '⌘M in the emulator';
@@ -72,6 +75,9 @@ function Home() {
   const envName = env.name();
   const envColor = ENV_COLORS[envName] ?? theme.muted;
   const [user, setUser] = useState<string | null>('jane@example.com');
+  const newCheckout = flags.useFlag('newCheckout');
+  const paywall = flags.useFlag('paywall');
+  const pillTextColor = newCheckout ? '#ffffff' : theme.muted;
 
   // Needs component state, so it lives in the tree instead of devTools.ts.
   useDevAction({
@@ -129,6 +135,40 @@ function Home() {
         </View>
       </Card>
 
+      <Card label="FLAGS" theme={theme}>
+        <View style={styles.flagRow}>
+          <Text style={[styles.body, { color: theme.text }]}>newCheckout</Text>
+          <View
+            style={[
+              styles.pill,
+              { backgroundColor: newCheckout ? ENV_COLORS.dev : theme.border },
+            ]}
+          >
+            <Text style={[styles.pillText, { color: pillTextColor }]}>
+              {newCheckout ? 'ON' : 'OFF'}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.flagRow}>
+          <Text style={[styles.body, { color: theme.text }]}>paywall</Text>
+          <View style={[styles.segment, { borderColor: theme.border }]}>
+            {flags.flags.paywall.options.map((option) => (
+              <Text
+                key={option}
+                style={[
+                  styles.segmentItem,
+                  option === paywall
+                    ? { backgroundColor: theme.text, color: theme.card }
+                    : { color: theme.muted },
+                ]}
+              >
+                {option}
+              </Text>
+            ))}
+          </View>
+        </View>
+      </Card>
+
       <Card label="DEV MENU" theme={theme}>
         <Text style={[styles.small, { color: theme.muted }]}>
           Open it with {MENU_SHORTCUT} or by shaking the device.
@@ -150,9 +190,9 @@ function Home() {
 
 export default function App() {
   return (
-    <env.EnvGate>
+    <DevActionsGate wait={GATE}>
       <Home />
-    </env.EnvGate>
+    </DevActionsGate>
   );
 }
 
@@ -232,6 +272,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  flagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  pill: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  pillText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  segment: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  segmentItem: {
+    fontSize: 13,
+    fontWeight: '500',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   actionChip: {
     borderWidth: 1,
