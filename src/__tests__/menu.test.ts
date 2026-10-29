@@ -77,6 +77,40 @@ describe('expo-dev-menu adapter', () => {
       { name: 'B', callback: run, shouldCollapse: true },
     ]);
   });
+  it('retries when the native call is rejected', async () => {
+    jest.useFakeTimers();
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const registerDevMenuItems = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('ERR_MISSING_ACTIVITY'))
+      .mockRejectedValueOnce(new Error('ERR_MISSING_ACTIVITY'))
+      .mockResolvedValue(undefined);
+    const adapter = createExpoDevMenuAdapter({ registerDevMenuItems });
+
+    adapter.sync([{ title: 'A', run: () => {} }]);
+    await jest.runAllTimersAsync();
+
+    expect(registerDevMenuItems).toHaveBeenCalledTimes(3);
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it('gives up after the last retry', async () => {
+    jest.useFakeTimers();
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const registerDevMenuItems = jest
+      .fn()
+      .mockRejectedValue(new Error('ERR_MISSING_ACTIVITY'));
+    const adapter = createExpoDevMenuAdapter({ registerDevMenuItems });
+
+    adapter.sync([{ title: 'A', run: () => {} }]);
+    await jest.runAllTimersAsync();
+
+    expect(registerDevMenuItems).toHaveBeenCalledTimes(7);
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining('registration failed'),
+      expect.any(Error)
+    );
+  });
 });
 
 describe('detectMenuAdapter', () => {
